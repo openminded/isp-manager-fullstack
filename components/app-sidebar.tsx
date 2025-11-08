@@ -5,20 +5,19 @@ import Link from "next/link"
 import Image from "next/image"
 import { useSession } from "@/lib/auth-client"
 import {
-  IconCamera,
   IconChartBar,
   IconDashboard,
   IconDatabase,
-  IconFileAi,
-  IconFileDescription,
-  IconFileWord,
-  IconFolder,
   IconHelp,
   IconListDetails,
   IconReport,
   IconSearch,
   IconSettings,
   IconUsers,
+  IconNetwork,
+  IconPackage,
+  IconUser,
+  IconGauge,
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -39,76 +38,34 @@ const staticData = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
-      url: "#",
-      icon: IconListDetails,
+      title: "Clients",
+      url: "/dashboard/clients",
+      icon: IconNetwork,
+    },
+    {
+      title: "Inventory",
+      url: "/dashboard/inventory",
+      icon: IconPackage,
+    },
+    {
+      title: "Bandwidth Plans",
+      url: "/dashboard/bandwidth-plans",
+      icon: IconGauge,
+    },
+    {
+      title: "Employees",
+      url: "/dashboard/employees",
+      icon: IconUsers,
+      isAdmin: true, // Only visible to admin users
     },
     {
       title: "Analytics",
-      url: "#",
+      url: "/dashboard/analytics",
       icon: IconChartBar,
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: IconFolder,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: IconUsers,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
     },
   ],
   navSecondary: [
@@ -130,35 +87,36 @@ const staticData = {
   ],
   documents: [
     {
-      name: "Data Library",
-      url: "#",
-      icon: IconDatabase,
-    },
-    {
       name: "Reports",
       url: "#",
       icon: IconReport,
     },
     {
-      name: "Word Assistant",
+      name: "System Logs",
       url: "#",
-      icon: IconFileWord,
+      icon: IconDatabase,
     },
   ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession()
-  
+
   const userData = session?.user ? {
     name: session.user.name || "User",
     email: session.user.email,
     avatar: session.user.image || "/codeguide-logo.png",
   } : {
     name: "Guest",
-    email: "guest@example.com", 
+    email: "guest@example.com",
     avatar: "/codeguide-logo.png",
   }
+
+  // Filter navigation items based on user role
+  // For now, we'll show all items. In a real implementation,
+  // you'd check against user roles in the database
+  const isAdmin = true // TODO: Implement actual role checking
+  const filteredNavMain = staticData.navMain.filter(item => !item.isAdmin || isAdmin)
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -170,15 +128,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <Link href="/">
-                <Image src="/codeguide-logo.png" alt="CodeGuide" width={32} height={32} className="rounded-lg" />
-                <span className="text-base font-semibold font-parkinsans">CodeGuide</span>
+                <Image src="/codeguide-logo.png" alt="ISP Manager" width={32} height={32} className="rounded-lg" />
+                <span className="text-base font-semibold font-parkinsans">ISP Manager</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={staticData.navMain} />
+        <NavMain items={filteredNavMain} />
         <NavDocuments items={staticData.documents} />
         <NavSecondary items={staticData.navSecondary} className="mt-auto" />
       </SidebarContent>

@@ -1,117 +1,90 @@
-# Project Requirements Document: codeguide-starter
-
----
+# Project Requirements Document (PRD)
 
 ## 1. Project Overview
 
-The **codeguide-starter** project is a boilerplate web application that provides a ready-made foundation for any web project requiring secure user authentication and a post-login dashboard. It sets up the common building blocks—sign-up and sign-in pages, API routes to handle registration and login, and a simple dashboard interface driven by static data. By delivering this skeleton, it accelerates development time and ensures best practices are in place from day one.
+**isp-manager-fullstack** is a Next.js full-stack starter kit tailored for building a custom Internet Service Provider (ISP) management portal. Its primary purpose is to eliminate boilerplate work by providing a ready-to-use foundation—complete with authentication, database integration, and a modern UI library—so developers can focus on implementing business logic for managing clients, PPPoE credentials, inventory, and employees. This starter kit follows best practices in security, type safety, and modular code organization.
 
-This starter kit is being built to solve the friction developers face when setting up repeated common tasks: credential handling, session management, page routing, and theming. Key objectives include: 1) delivering a fully working authentication flow (registration & login), 2) providing a gated dashboard area upon successful login, 3) establishing a clear, maintainable project structure using Next.js and TypeScript, and 4) demonstrating a clean theming approach with global and section-specific CSS. Success is measured by having an end-to-end login journey in under 200 lines of code and zero runtime type errors.
-
----
+We’re building this portal to help ISPs automate and centralize their daily operations: from onboarding new PPPoE users on MikroTik RouterOS 7 to tracking inventory and managing staff access. Key success criteria include: 
+- A secure, role-based authentication flow that distinguishes between admins and technicians.  
+- Full CRUD (Create, Read, Update, Delete) workflows for clients, plans, inventory items, and employees.  
+- Reliable integration with a MikroTik REST API so that database changes sync with network configurations.  
+- A polished, responsive UI built with shadcn/ui and Tailwind CSS, deployed smoothly on Vercel or within Docker.
 
 ## 2. In-Scope vs. Out-of-Scope
 
-### In-Scope (Version 1)
-- User registration (sign-up) form with validation
-- User login (sign-in) form with validation
-- Next.js API routes under `/api/auth/route.ts` handling:
-  - Credential validation
-  - Password hashing (e.g., bcrypt)
-  - Session creation or JWT issuance
-- Protected dashboard pages under `/dashboard`:
-  - `layout.tsx` wrapping dashboard content
-  - `page.tsx` rendering static data from `data.json`
-- Global application layout in `/app/layout.tsx`
-- Basic styling via `globals.css` and `dashboard/theme.css`
-- TypeScript strict mode enabled
+**In-Scope (Version 1)**
+- Secure employee authentication and session management using Better Auth.  
+- Role-Based Access Control (RBAC) distinguishing at least `admin` and `technician` roles.  
+- A protected dashboard with navigation to Clients, Inventory, Plans, and Employees pages.  
+- PostgreSQL integration via Drizzle ORM with schemas for `clients`, `bandwidth_plans`, `inventory_items`, and `employees`.  
+- CRUD API routes and Next.js Server Actions for all primary entities.  
+- A `/lib/mikrotik.ts` service module for creating, updating, and disabling PPPoE users on RouterOS 7.  
+- UI components (tables, forms, dialogs) built with shadcn/ui and styled by Tailwind CSS.  
+- Environment variable management for DB URL, auth secret, and router credentials.  
+- Basic error handling and logging for database operations and RouterOS calls.  
 
-### Out-of-Scope (Later Phases)
-- Integration with a real database (PostgreSQL, MongoDB, etc.)
-- Advanced authentication flows (password reset, email verification, MFA)
-- Role-based access control (RBAC)
-- Multi-tenant or white-label theming
-- Unit, integration, or end-to-end testing suites
-- CI/CD pipeline and production deployment scripts
-
----
+**Out-of-Scope (Planned for Later Phases)**
+- Real-time monitoring of PPPoE sessions or bandwidth usage.  
+- Automated billing/invoicing or payment gateway integration.  
+- Advanced reporting, analytics dashboards, or charting libraries.  
+- Mobile-specific UI or a separate mobile app.  
+- Email/SMS notifications or in-app messaging.  
+- Background cron jobs for data synchronization (e.g., Vercel Cron) unless explicitly added later.
 
 ## 3. User Flow
 
-A new visitor lands on the root URL and sees a welcome page with options to **Sign Up** or **Sign In**. If they choose Sign Up, they fill in their email, password, and hit “Create Account.” The form submits to `/api/auth/route.ts`, which hashes the password, creates a new user session or token, and redirects them to the dashboard. If any input is invalid, an inline error message explains the issue (e.g., “Password too short”).
+When an employee arrives at the portal, they land on a login page. After entering valid credentials, the system verifies their role (admin or technician) and redirects them to a unified dashboard. The dashboard features a top navigation bar with a logo and profile menu, plus a left sidebar listing `Clients`, `Inventory`, `Plans`, and `Employees`. The main content area shows a summary card (e.g., total clients) and a table of recent entries.
 
-Once authenticated, the user is taken to the `/dashboard` route. Here they see a sidebar or header defined by `dashboard/layout.tsx`, and the main panel pulls in static data from `data.json`. They can log out (if that control is present), but otherwise their entire session is managed by server-side cookies or tokens. Returning users go directly to Sign In, submit credentials, and upon success they land back on `/dashboard`. Any unauthorized access to `/dashboard` redirects back to Sign In.
-
----
+To manage clients, the user clicks “Clients” in the sidebar and sees a paginated data table listing each client’s name, PPPoE username, plan, and status. An “Add Client” button opens a modal form where they input client details, select a bandwidth plan, and set PPPoE credentials. On submission, a Next.js Server Action writes to PostgreSQL via Drizzle, then calls the MikroTik API module to provision the user on the router. Success or failure is displayed via toast notifications, and the table refreshes automatically.
 
 ## 4. Core Features
 
-- **Sign-Up Page (`/app/sign-up/page.tsx`)**: Form fields for email & password, client-side validation, POST to `/api/auth`.
-- **Sign-In Page (`/app/sign-in/page.tsx`)**: Form fields for email & password, client-side validation, POST to `/api/auth`.
-- **Authentication API (`/app/api/auth/route.ts`)**: Handles both registration and login based on HTTP method, integrates password hashing (bcrypt) and session or JWT logic.
-- **Global Layout (`/app/layout.tsx` + `globals.css`)**: Shared header, footer, and CSS resets across all pages.
-- **Dashboard Layout (`/app/dashboard/layout.tsx` + `dashboard/theme.css`)**: Sidebar or top nav for authenticated flows, section-specific styling.
-- **Dashboard Page (`/app/dashboard/page.tsx`)**: Reads `data.json`, renders it as cards or tables.
-- **Static Data Source (`/app/dashboard/data.json`)**: Example dataset to demo dynamic rendering.
-- **TypeScript Configuration**: `tsconfig.json` with strict mode and path aliases (if any).
-
----
+- **Authentication & RBAC**: Employee sign-up/login, session management with Better Auth, user roles (`admin`, `technician`).  
+- **Protected Dashboard**: Next.js App Router guards pages and API routes for authenticated staff only.  
+- **Client Management**: List, create, edit, and delete PPPoE clients; sync credentials with RouterOS.  
+- **Inventory Management**: CRUD operations for inventory items, categories, and statuses.  
+- **Bandwidth Plan Management**: CRUD for plans, including speed limits and pricing metadata.  
+- **Employee Management**: Admin-only pages to add, edit, or remove employee accounts and roles.  
+- **Database Integration**: Drizzle ORM schemas for all entities, PostgreSQL as the data store.  
+- **MikroTik RouterOS Integration**: Encapsulated REST calls (`createPppoeUser`, `disablePppoeUser`, `updateUserPlan`).  
+- **UI Component Library**: shadcn/ui + Tailwind CSS for tables, forms, dialogs, and notifications.  
+- **Server Actions & API Routes**: Next.js co-located frontend/backend logic for secure, server-side operations.  
+- **Configuration Management**: Environment variables for `DATABASE_URL`, `AUTH_SECRET`, and router credentials.  
+- **Error Handling & Logging**: Unified try-catch blocks with console or file-based logs for critical failures.
 
 ## 5. Tech Stack & Tools
 
-- **Framework**: Next.js (App Router) for file-based routing, SSR/SSG, and API routes.
-- **Language**: TypeScript for type safety.
-- **UI Library**: React 18 for component-based UI.
-- **Styling**: Plain CSS via `globals.css` (global reset) and `theme.css` (sectional styling). Can easily migrate to CSS Modules or Tailwind in the future.
-- **Backend**: Node.js runtime provided by Next.js API routes.
-- **Password Hashing**: bcrypt (npm package).
-- **Session/JWT**: NextAuth.js or custom JWT logic (to be decided in implementation).
-- **IDE & Dev Tools**: VS Code with ESLint, Prettier extensions. Optionally, Cursor.ai for AI-assisted coding.
-
----
+- Frontend: Next.js (App Router), React, TypeScript, Tailwind CSS, shadcn/ui.  
+- Backend: Next.js API routes & Server Actions, Node.js, Drizzle ORM, PostgreSQL.  
+- Authentication: Better Auth for session management and RBAC.  
+- MikroTik Integration: Custom `/lib/mikrotik.ts` module leveraging fetch or an NPM package (e.g., `node-routeros-rest`).  
+- Deployment: Vercel (preferred) or Docker containers for custom infrastructure.  
+- IDE & Plugins: VS Code with Tailwind CSS IntelliSense, Drizzle ORM snippets, ESLint, Prettier.
 
 ## 6. Non-Functional Requirements
 
-- **Performance**: Initial page load under 200 ms on a standard broadband connection. API responses under 300 ms.
-- **Security**:
-  - HTTPS only in production.
-  - Proper CORS, CSRF protection for API routes.
-  - Secure password storage (bcrypt with salt).
-  - No credentials or secrets checked into version control.
-- **Scalability**: Structure must support adding database integration, caching layers, and advanced auth flows without rewiring core app.
-- **Usability**: Forms should give real-time feedback on invalid input. Layout must be responsive (mobile > 320 px).
-- **Maintainability**: Code must adhere to TypeScript strict mode. Linting & formatting enforced by ESLint/Prettier.
-
----
+- **Performance**: 90th percentile page response under 300 ms; DB queries under 100 ms.  
+- **Scalability**: Support up to thousands of client records and concurrent users.  
+- **Security**: HTTPS everywhere, OWASP Top 10 considerations, secure storage of environment variables.  
+- **Reliability**: Graceful error handling for partial failures (DB vs. Router API).  
+- **Usability**: Accessible UI (ARIA roles, keyboard navigable), mobile-responsive layouts.  
+- **Compliance**: GDPR-ready data handling; all personal data stored securely.
 
 ## 7. Constraints & Assumptions
 
-- **No Database**: Dashboard uses only `data.json`; real database integration is deferred.
-- **Node Version**: Requires Node.js >= 14.
-- **Next.js Version**: Built on Next.js 13+ App Router.
-- **Authentication**: Assumes availability of bcrypt or NextAuth.js at implementation time.
-- **Hosting**: Targets serverless or Node.js-capable hosting (e.g., Vercel, Netlify).
-- **Browser Support**: Modern evergreen browsers; no IE11 support required.
-
----
+- The MikroTik router runs RouterOS v7 with REST API enabled and reachable from the backend.  
+- Environment variables (`DATABASE_URL`, `AUTH_SECRET`, `ROUTER_HOST`, `ROUTER_USER`, `ROUTER_PASS`) are properly configured before launch.  
+- The team uses Vercel for deployment; Docker setup is optional but available.  
+- No existing billing or monitoring services need to integrate in v1.  
+- All staff have modern browsers; no legacy IE support required.
 
 ## 8. Known Issues & Potential Pitfalls
 
-- **Static Data Limitation**: `data.json` is only for demo. A real API or database will be needed to avoid stale data.
-  *Mitigation*: Define a clear interface for data fetching so swapping to a live endpoint is trivial.
-
-- **Global CSS Conflicts**: Using global styles can lead to unintended overrides.
-  *Mitigation*: Plan to migrate to CSS Modules or utility-first CSS in Phase 2.
-
-- **API Route Ambiguity**: Single `/api/auth/route.ts` handling both sign-up and sign-in could get complex.
-  *Mitigation*: Clearly branch on HTTP method (`POST /register` vs. `POST /login`) or split into separate files.
-
-- **Lack of Testing**: No test suite means regressions can slip in.
-  *Mitigation*: Build a minimal Jest + React Testing Library setup in an early iteration.
-
-- **Error Handling Gaps**: Client and server must handle edge cases (network failures, malformed input).
-  *Mitigation*: Define a standard error response schema and show user-friendly messages.
+- **Partial Failure Handling**: If the database record is created but the router call fails, you must implement compensating transactions or rollback logic.  
+- **API Rate Limits**: MikroTik devices may throttle repeated REST calls; add retry logic with exponential backoff.  
+- **Schema Migrations**: Drizzle ORM migrations must be tested in staging before production rollout to avoid data loss.  
+- **Network Connectivity**: The portal backend and router must be on a network path; errors in connectivity should surface clear errors to the user.  
+- **RBAC Ambiguities**: Define clearly which API routes and UI elements are visible/editable by each role to avoid privilege leaks.
 
 ---
-
-This PRD should serve as the single source of truth for the AI model or any developer generating the next set of technical documents: Tech Stack Doc, Frontend Guidelines, Backend Structure, App Flow, File Structure, and IDE Rules. It contains all functional and non-functional requirements with no ambiguity, enabling seamless downstream development.
+This PRD serves as the single source of truth for the AI model to generate detailed technical documents (Tech Stack, Frontend Guidelines, Backend Structure, App Flow, File Structure, IDE Rules, etc.) without ambiguity.
