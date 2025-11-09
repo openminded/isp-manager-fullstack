@@ -1,14 +1,35 @@
 flowchart TD
-  Start[Landing Page]
-  SignUpPage[Sign Up Page]
-  SignInPage[Sign In Page]
-  AuthAPI[Authentication API Endpoint]
-  DashboardPage[Dashboard Page]
-  Start -->|Select Sign Up| SignUpPage
-  Start -->|Select Sign In| SignInPage
-  SignUpPage -->|Submit Credentials| AuthAPI
-  SignInPage -->|Submit Credentials| AuthAPI
-  AuthAPI -->|Success| DashboardPage
-  AuthAPI -->|Error| SignUpPage
-  AuthAPI -->|Error| SignInPage
-  DashboardPage -->|Click Logout| Start
+ A[Employee Access] --> B[Login Page]
+ B --> C[Better Auth]
+ C --> D[Protected Dashboard]
+ D --> E[Clients Module]
+ D --> I[Inventory Module]
+ D --> M[Employees Module]
+ E --> F[View Clients List]
+ F --> G[Click Add Client]
+ G --> H[Display Add Client Form]
+ H --> J[Submit Form]
+ J --> K[Server Action]
+ K --> L[Write to PostgreSQL DB]
+ L --> N[MikroTik API Call]
+ N --> O{Success?}
+ O -->|Yes| P[Update UI List]
+ O -->|No| Q[Show Error]
+ I --> R[View Inventory List]
+ R --> S[Click Add Item]
+ S --> T[Display Add Item Form]
+ T --> U[Submit Form]
+ U --> V[Server Action]
+ V --> W[Write to DB]
+ W --> X{Success?}
+ X -->|Yes| Y[Update UI]
+ X -->|No| Z[Show Error]
+ M --> AA[View Employees List]
+ AA --> AB[Click Add Employee]
+ AB --> AC[Display Add Employee Form]
+ AC --> AD[Submit Form]
+ AD --> AE[Server Action]
+ AE --> AF[Write to Auth DB]
+ AF --> AG{Success?}
+ AG -->|Yes| AH[Update UI]
+ AG -->|No| AI[Show Error]
